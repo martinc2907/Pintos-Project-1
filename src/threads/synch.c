@@ -75,6 +75,44 @@ sema_down (struct semaphore *sema)
   intr_set_level (old_level);
 }
 
+/*
+void
+sema_down (struct semaphore *sema) 
+{
+  enum intr_level old_level;
+
+  ASSERT (sema != NULL);
+  ASSERT (!intr_context ());
+
+  old_level = intr_disable ();
+
+  while (sema->value == 0) 
+    {
+      //modify so that we put in correct position in list using list_insert_ordered.
+      //put in list of threads of waiting for semaphore.
+      list_insert_ordered(&sema->waiters, &thread_current()->elem, &find_smaller_priority, NULL);
+      //list_push_back (&sema->waiters, &thread_current ()->elem);
+
+      //thread_block calls schedule, so we must priority donate before this if needed.
+      thread_block ();
+    }
+  sema->value--;
+  intr_set_level (old_level);
+}*/
+
+//returns true if a is less than b,
+// false if a is greater than or equal to b.
+bool find_smaller_priority(const struct list_elem *insert_element, const struct list_elem *list_element, void * aux)
+{ 
+  struct thread * insert = list_entry(insert_element,struct thread,elem);
+  struct thread * element = list_entry(list_element,struct thread, elem);
+
+  if(insert->priority > element->priority)
+    return true;
+  else
+    return false;
+}
+
 /* Down or "P" operation on a semaphore, but only if the
    semaphore is not already 0.  Returns true if the semaphore is
    decremented, false otherwise.
@@ -199,6 +237,34 @@ lock_acquire (struct lock *lock)
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
 }
+
+/*
+void
+lock_acquire (struct lock *lock)
+{
+  bool success;
+  ASSERT (lock != NULL);
+  ASSERT (!intr_context ());
+  ASSERT (!lock_held_by_current_thread (lock));
+
+  //call lock_try_acquire
+  success= lock_try_acquire(lock);
+  if(success){
+    //do nothing?
+  }else{
+    //implement priority donate, putting into waiting list handlded by sema_down.
+    if(thread_current()->donated_priority > (lock->holder)->donated_priority){
+      (lock->holder)->donated_priority = thread_current()->donated_priority;
+    }
+    sema_down(&lock->semaphore);
+  }
+
+
+  //sema_down (&lock->semaphore);
+  //lock->holder = thread_current ();
+}*/
+
+
 
 /* Tries to acquires LOCK and returns true if successful or false
    on failure.  The lock must not already be held by the current

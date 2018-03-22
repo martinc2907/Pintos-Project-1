@@ -108,6 +108,7 @@ struct list
 #define list_entry(LIST_ELEM, STRUCT, MEMBER)           \
         ((STRUCT *) ((uint8_t *) &(LIST_ELEM)->next     \
                      - offsetof (STRUCT, MEMBER.next)))
+// Offsetof returns no. of bytes til member in struct essentially.
 
 /* List initialization.
 

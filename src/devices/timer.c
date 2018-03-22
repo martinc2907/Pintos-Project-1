@@ -33,11 +33,6 @@ static void real_time_delay (int64_t num, int32_t denom);
 static void decrement_sleep_ticks(struct thread * thread, void * aux);
 
 void decrement_sleep_ticks(struct thread * thread, void * aux){
-  /*
-  if(thread->sleep_ticks == 0){
-    thread->sleep_ticks = -1;
-    thread_unblock(thread);
-    }*/
   if(thread->sleep_ticks != -1){
     thread->sleep_ticks--;
     if(thread->sleep_ticks == 0){
