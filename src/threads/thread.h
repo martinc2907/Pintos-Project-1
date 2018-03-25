@@ -83,21 +83,26 @@ typedef int tid_t;
 struct thread
   {
     /* Owned by thread.c. */
-    tid_t tid;                          /* Thread identifier. */
-    enum thread_status status;          /* Thread state. */
-    char name[16];                      /* Name (for debugging purposes). */
-    uint8_t *stack;                     /* Saved stack pointer. */
-    int priority;                       /* Priority. */
-    struct list_elem allelem;           /* List element for all threads list. */
+    tid_t tid;                         /* Thread identifier. */
+    enum thread_status status;         /* Thread state. */
+    char name[16];                     /* Name (for debugging purposes). */
+    uint8_t *stack;                    /* Saved stack pointer. */
+    int priority;                      /* Priority. */
+    struct list_elem allelem;          /* List element for all threads list.*/
 
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element for ready list. */
-    struct list_elem waiting_elem;      /* List element for threads waiting for lock */
+    struct list_elem elem;             /* List element for ready list. */
 
-    /* used for priority donation */
-    int original_priority;               /* Donated priority - initialised to original priority */
-    struct list owned_locks;
-    struct lock * requested_lock;
+    /* Used for alarm */
+    int sleep_ticks;                   /* Number of ticks left for sleeping */
+
+    /* Used for priority donation */
+    int original_priority;             /* Donated priority - 
+                                          initialised to original priority. */
+    struct list owned_locks;           /* List of locks owned by thread. */ 
+    struct lock * requested_lock;      /* Lock that thread is waiting for. */
+    struct list_elem waiting_elem;     /* List element for waiting threads */
+    struct list_elem cond_elem;        /* List element for monitor */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -106,13 +111,15 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
-    int sleep_ticks;                    /* Number of ticks left for sleep */
 };
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+/* Used for yielding thread under right conditions- called from synch.c */
+void thread_preempt(void); 
 
 void thread_init (void);
 void thread_start (void);
